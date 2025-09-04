@@ -18,6 +18,7 @@ namespace TaskManager.Persistance
             services.AddScoped(typeof(IAsyncRepository<>), typeof(BaseRepository<>));
 
             services.AddScoped<IUserRepository, UserRepository>();
+            services.AddScoped<ITaskRepository, TaskRepository>();
            
             return services;
         }
