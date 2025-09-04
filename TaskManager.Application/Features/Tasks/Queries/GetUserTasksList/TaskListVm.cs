@@ -1,6 +1,6 @@
 ﻿using TaskManager.Domain.Enums;
 
-namespace TaskManager.Application.Features.Tasks.Queries.GetTasksList
+namespace TaskManager.Application.Features.Tasks.Queries.GetUserTasksList
 {
     public class TaskListVm
     {

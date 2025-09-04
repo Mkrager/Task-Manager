@@ -10,10 +10,10 @@ namespace TaskManager.Application.Features.Tasks.Commads.CreateTask
                 .NotEmpty().WithMessage("Title required");
 
             RuleFor(r => r.Status)
-                .NotEmpty().WithMessage("Status required");
+                .IsInEnum().WithMessage("Status is invalid");
 
             RuleFor(r => r.Priority)
-                .NotEmpty().WithMessage("Due date required");
+                .IsInEnum().WithMessage("Priority is invalid");
 
             RuleFor(r => r.DueDate)
                 .NotEmpty().WithMessage("Due date required");

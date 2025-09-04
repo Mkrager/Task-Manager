@@ -4,6 +4,8 @@ using TaskManager.Identity;
 using TaskManager.Persistance;
 using TaskManager.Infrastructure;
 using TaskManager.Api.Middlewares;
+using TaskManager.Api.Services;
+using TaskManager.Application.Contracts;
 
 namespace TaskManager.Api
 {
@@ -18,6 +20,8 @@ namespace TaskManager.Api
             builder.Services.AddIdentityServices(builder.Configuration);
             builder.Services.AddPersistenceServices(builder.Configuration);
             builder.Services.AddInfrastructureServices();
+
+            builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 
             builder.Services.AddHttpContextAccessor();
 

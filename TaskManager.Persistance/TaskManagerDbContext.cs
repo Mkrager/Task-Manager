@@ -1,18 +1,27 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using TaskManager.Domain.Common;
 using TaskManager.Domain.Entities;
+using TaskManager.Persistance.Interceptors;
 
 namespace TaskManager.Persistance
 {
     public class TaskManagerDbContext : DbContext
     {
-        public TaskManagerDbContext(DbContextOptions<TaskManagerDbContext> options)
+        private readonly AuditableEntitySaveChangesInterceptor _auditableInterceptor;
+        public TaskManagerDbContext(DbContextOptions<TaskManagerDbContext> options, AuditableEntitySaveChangesInterceptor auditableInterceptor)
             : base(options)
         {
+            _auditableInterceptor = auditableInterceptor;
         }
 
         public DbSet<Domain.Entities.Task> Tasks { get; set; }
         public DbSet<User> Users { get; set; }
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+            optionsBuilder.AddInterceptors(_auditableInterceptor);
+            base.OnConfiguring(optionsBuilder);
+        }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<User>()
@@ -23,22 +32,5 @@ namespace TaskManager.Persistance
                 .HasIndex(u => u.Email)
                 .IsUnique();
         }
-        public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
-        {
-            var now = DateTime.UtcNow;
-
-            foreach (var entry in ChangeTracker.Entries())
-            {
-                if (entry.Entity is AuditableEntity auditable)
-                {
-                    if (entry.State == EntityState.Added)
-                        auditable.CreatedAt = now;
-                    else if (entry.State == EntityState.Modified)
-                        auditable.UpdatedAt = now;
-                }
-            }
-            return base.SaveChangesAsync(cancellationToken);
-        }
-
     }
 }

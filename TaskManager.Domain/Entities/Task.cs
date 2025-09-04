@@ -3,7 +3,7 @@ using TaskManager.Domain.Enums;
 
 namespace TaskManager.Domain.Entities
 {
-    public class Task : AuditableEntity
+    public class Task : AuditableEntity, IHasUser
     {
         public string Title { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;

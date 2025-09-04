@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using TaskManager.Application.Contracts.Persistance;
+using TaskManager.Persistance.Interceptors;
 using TaskManager.Persistance.Repositories;
 
 namespace TaskManager.Persistance
@@ -16,6 +17,8 @@ namespace TaskManager.Persistance
             ("TaskManagerConnectionString")));
 
             services.AddScoped(typeof(IAsyncRepository<>), typeof(BaseRepository<>));
+
+            services.AddScoped<AuditableEntitySaveChangesInterceptor>();
 
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<ITaskRepository, TaskRepository>();
