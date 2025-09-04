@@ -9,5 +9,8 @@ namespace TaskManager.Domain.Entities
         public string Description { get; set; } = string.Empty;
         public DateTime? DueDate { get; set; }
         public Status Status { get; set; }
+        public Guid UserId { get; set; }
+
+        public User User { get; set; } = default!;
     }
 }
