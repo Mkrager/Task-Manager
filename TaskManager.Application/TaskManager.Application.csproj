@@ -19,8 +19,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Folder Include="Features\Account\Commads\" />
-	  <Folder Include="Features\Account\Queries\" />
 	  <Folder Include="Features\Tasks\Commads\" />
 	  <Folder Include="Features\Tasks\Queries\" />
 	</ItemGroup>
