@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using Moq;
 using Shouldly;
+using TaskManager.Application.Contracts.Application;
 using TaskManager.Application.Contracts.Persistance;
 using TaskManager.Application.Features.Tasks.Commads.UpdateTask;
 using TaskManager.Application.Profiles;
@@ -15,9 +16,11 @@ namespace TaskManager.Application.UnitTests.Tasks.Commands
         private readonly IMapper _mapper;
         private readonly Mock<ITaskRepository> _mockTaskRepository;
         private readonly Mock<ILogger<UpdateTaskCommandHandler>> _mockLoggerService;
+        private readonly Mock<IPermissionService> _mockPermissionService;
         public UpdateTaskCommandTest()
         {
             _mockTaskRepository = TaskRepositoryMock.GetTaskRepository();
+            _mockPermissionService = PermissionServiceMock.GetPermissionService();
             _mockLoggerService = LoggerServiceMock.GetLoggerService<UpdateTaskCommandHandler>();
             var configurationProvider = new MapperConfiguration(cfg =>
             {
@@ -38,7 +41,8 @@ namespace TaskManager.Application.UnitTests.Tasks.Commands
                 Title = "UpdTitile",
                 Priority = Priority.Low,
                 Status = Status.Completed,
-                DueDate = DateTime.UtcNow.AddDays(2)
+                DueDate = DateTime.UtcNow.AddDays(2),
+                UserId = Guid.Parse("6b6da9a2-1f8b-4676-84b9-baf714600217")
             };
 
             await handler.Handle(command, CancellationToken.None);
@@ -57,7 +61,7 @@ namespace TaskManager.Application.UnitTests.Tasks.Commands
         [Fact]
         public async void Validator_ShouldHaveError_WhenTitleEmpty()
         {
-            var validator = new UpdateTaskCommandValidator();
+            var validator = new UpdateTaskCommandValidator(_mockTaskRepository.Object, _mockPermissionService.Object);
             var query = new UpdateTaskCommand
             {
                 Id = Guid.Parse("b8c3f27a-7b28-4ae6-94c2-91fdc33b77e8"),
@@ -65,14 +69,35 @@ namespace TaskManager.Application.UnitTests.Tasks.Commands
                 Title = "",
                 Priority = Priority.Low,
                 Status = Status.Completed,
-                DueDate = DateTime.UtcNow.AddDays(2)
+                DueDate = DateTime.UtcNow.AddDays(2),
+                UserId = Guid.Parse("6b6da9a2-1f8b-4676-84b9-baf714600217")
             };
 
             var result = await validator.ValidateAsync(query);
 
             Assert.False(result.IsValid);
             Assert.Contains(result.Errors, f => f.PropertyName == "Title");
-        }
+        }        
+        
+        [Fact]
+        public async void Validator_ShouldHaveError_WhenUserDontHavePermission()
+        {
+            var validator = new UpdateTaskCommandValidator(_mockTaskRepository.Object, _mockPermissionService.Object);
+            var query = new UpdateTaskCommand
+            {
+                Id = Guid.Parse("b8c3f27a-7b28-4ae6-94c2-91fdc33b77e8"),
+                Description = "UpdDesc",
+                Title = "123",
+                Priority = Priority.Low,
+                Status = Status.Completed,
+                DueDate = DateTime.UtcNow.AddDays(2),
+                UserId = Guid.Parse("6b6da9a2-1f8b-4676-84b9-baf714601231")
+            };
 
+            var result = await validator.ValidateAsync(query);
+
+            Assert.False(result.IsValid);
+            Assert.Contains("You don't have permission", result.Errors.Select(e => e.ErrorMessage));
+        }
     }
 }
