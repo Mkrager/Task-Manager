@@ -3,6 +3,8 @@ using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 using TaskManager.Application.Behaviours;
+using TaskManager.Application.Contracts.Application;
+using TaskManager.Application.Services;
 
 namespace TaskManager.Application
 {
@@ -13,6 +15,8 @@ namespace TaskManager.Application
         {
             services.AddAutoMapper(Assembly.GetExecutingAssembly());
             services.AddMediatR(Assembly.GetExecutingAssembly());
+
+            services.AddScoped<IPermissionService, PermissionService>();
 
             services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
             services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehaviour<,>));

@@ -11,5 +11,6 @@ namespace TaskManager.Application.Features.Tasks.Commads.UpdateTask
         public DateTime? DueDate { get; set; }
         public Status Status { get; set; }
         public Priority Priority { get; set; }
+        public Guid UserId { get; set; }
     }
 }

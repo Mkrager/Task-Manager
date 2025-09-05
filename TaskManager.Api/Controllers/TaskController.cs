@@ -59,6 +59,7 @@ namespace TaskManager.Api.Controllers
         [ProducesDefaultResponseType]
         public async Task<ActionResult> Update([FromBody] UpdateTaskCommand updateTaskCommand)
         {
+            updateTaskCommand.UserId = Guid.Parse(currentUserService.UserId);
             await mediator.Send(updateTaskCommand);
             return NoContent();
         }
@@ -70,7 +71,11 @@ namespace TaskManager.Api.Controllers
         [ProducesDefaultResponseType]
         public async Task<ActionResult> Delete(Guid id)
         {
-            var deleteTaskCommand = new DeleteTaskCommand() { Id = id };
+            var deleteTaskCommand = new DeleteTaskCommand() 
+            { 
+                Id = id,
+                UserId = Guid.Parse(currentUserService.UserId)
+            };
             await mediator.Send(deleteTaskCommand);
             return NoContent();
         }
@@ -81,7 +86,11 @@ namespace TaskManager.Api.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<TaskDetailVm>> GetTaskById(Guid id)
         {
-            var getTaskDetailQuery = new GetTaskDetailQuery() { Id = id };
+            var getTaskDetailQuery = new GetTaskDetailQuery() 
+            { 
+                Id = id,
+                UserId = Guid.Parse(currentUserService.UserId)
+            };
             return Ok(await mediator.Send(getTaskDetailQuery));
         }
     }
