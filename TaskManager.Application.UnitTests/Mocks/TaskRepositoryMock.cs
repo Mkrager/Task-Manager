@@ -1,5 +1,6 @@
 ﻿using Moq;
 using TaskManager.Application.Contracts.Persistance;
+using TaskManager.Application.DTOs;
 using TaskManager.Domain.Enums;
 
 namespace TaskManager.Application.UnitTests.Mocks
@@ -18,7 +19,7 @@ namespace TaskManager.Application.UnitTests.Mocks
                     DueDate = DateTime.UtcNow.AddDays(3),
                     Priority = Priority.Medium,
                     Status = Status.Pending,
-                    UserId = Guid.NewGuid()
+                    UserId = Guid.Parse("6b6da9a2-1f8b-4676-84b9-baf714600217")
                 },
                 new Domain.Entities.Task
                 {
@@ -28,7 +29,7 @@ namespace TaskManager.Application.UnitTests.Mocks
                     DueDate = DateTime.UtcNow.AddDays(5),
                     Priority = Priority.High,
                     Status = Status.InProgress,
-                    UserId = Guid.NewGuid()
+                    UserId = Guid.Parse("6b6da9a2-1f8b-4676-84b9-baf714600217")
                 },
                 new Domain.Entities.Task
                 {
@@ -38,7 +39,7 @@ namespace TaskManager.Application.UnitTests.Mocks
                     DueDate = DateTime.UtcNow.AddDays(1),
                     Priority = Priority.Low,
                     Status = Status.Completed,
-                    UserId = Guid.NewGuid()
+                    UserId = Guid.Parse("6b6da9a2-1f8b-4676-84b9-baf714600217")
                 },
                 new Domain.Entities.Task
                 {
@@ -48,7 +49,7 @@ namespace TaskManager.Application.UnitTests.Mocks
                     DueDate = DateTime.UtcNow.AddDays(7),
                     Priority = Priority.Low,
                     Status = Status.Pending,
-                    UserId = Guid.NewGuid()
+                    UserId = Guid.Parse("6b6da9a2-1f8b-4676-84b9-baf714600217")
                 }
             };
 
@@ -83,6 +84,51 @@ namespace TaskManager.Application.UnitTests.Mocks
 
             mockRepository.Setup(r => r.DeleteAsync(It.IsAny<Domain.Entities.Task>()))
                 .Callback((Domain.Entities.Task task) => tasks.Remove(task));
+
+
+            mockRepository.Setup(r => r.GetTasksByUserIdAsync(
+                It.IsAny<Guid>(),
+                It.IsAny<Status?>(),
+                It.IsAny<DateTime?>(),
+                It.IsAny<Priority?>(),
+                It.IsAny<TaskSortFieldDto>(),
+                It.IsAny<bool>(),
+                It.IsAny<int>(),
+                It.IsAny<int>()))
+            .ReturnsAsync((Guid userId, Status? status, DateTime? dueDate, Priority? priority,
+                           TaskSortFieldDto sortBy, bool ascending, int pageNumber, int pageSize) =>
+            {
+                var query = tasks.AsQueryable().Where(t => t.UserId == userId);
+
+                if (status.HasValue)
+                    query = query.Where(t => t.Status == status.Value);
+
+                if (dueDate.HasValue)
+                    query = query.Where(t => t.DueDate.Value.Date == dueDate.Value.Date);
+
+                if (priority.HasValue)
+                    query = query.Where(t => t.Priority == priority.Value);
+
+                query = sortBy switch
+                {
+                    TaskSortFieldDto.DueDate => ascending ? query.OrderBy(t => t.DueDate) : query.OrderByDescending(t => t.DueDate),
+                    TaskSortFieldDto.Priority => ascending ? query.OrderBy(t => t.Priority) : query.OrderByDescending(t => t.Priority),
+                    _ => query.OrderBy(t => t.CreatedAt)
+                };
+
+                var totalCount = query.Count();
+
+                var tasksResult = query
+                    .Skip((pageNumber - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToList();
+
+                return new GetTasksByUserIdResponse
+                {
+                    Tasks = tasksResult,
+                    TotalCount = totalCount
+                };
+            });
 
             return mockRepository;
         }
