@@ -2,11 +2,13 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TaskManager.Application.Contracts;
+using TaskManager.Application.DTOs;
 using TaskManager.Application.Features.Tasks.Commads.CreateTask;
 using TaskManager.Application.Features.Tasks.Commads.DeleteTask;
 using TaskManager.Application.Features.Tasks.Commads.UpdateTask;
 using TaskManager.Application.Features.Tasks.Queries.GetTaskDetails;
 using TaskManager.Application.Features.Tasks.Queries.GetUserTasksList;
+using TaskManager.Domain.Enums;
 
 namespace TaskManager.Api.Controllers
 {
@@ -18,15 +20,30 @@ namespace TaskManager.Api.Controllers
         [HttpGet(Name = "GetUserTasks")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesDefaultResponseType]
-        public async Task<ActionResult<List<TaskListVm>>> GetUserTasks()
+        public async Task<ActionResult<TaskListVm>> GetUserTasks(
+            [FromQuery] Status? status,
+            [FromQuery] DateTime? dueDate,
+            [FromQuery] Priority? priority,
+            [FromQuery] TaskSortFieldDto sortBy = TaskSortFieldDto.DueDate,
+            [FromQuery] bool ascending = true,
+            [FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize = 10)
         {
-            var dtos = await mediator.Send(new GetUserTasksListQuery()
+            var query = new GetUserTasksListQuery
             {
-                UserId = Guid.Parse(currentUserService.UserId)
-            });
-            return Ok(dtos);
-        }
+                UserId = Guid.Parse(currentUserService.UserId),
+                Status = status,
+                DueDate = dueDate,
+                Priority = priority,
+                SortBy = sortBy,
+                Ascending = ascending,
+                PageNumber = pageNumber,
+                PageSize = pageSize
+            };
 
+            var result = await mediator.Send(query);
+            return Ok(result);
+        }
         [Authorize]
         [HttpPost(Name = "AddTask")]
         public async Task<ActionResult<Guid>> Create([FromBody] CreateTaskCommand createTaskCommand)

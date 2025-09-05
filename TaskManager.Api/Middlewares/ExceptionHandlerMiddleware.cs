@@ -7,10 +7,12 @@ namespace TaskManager.Api.Middlewares
     public class ExceptionHandlerMiddleware
     {
         private readonly RequestDelegate _next;
+        private readonly ILogger<ExceptionHandlerMiddleware> _logger;
 
-        public ExceptionHandlerMiddleware(RequestDelegate next)
+        public ExceptionHandlerMiddleware(RequestDelegate next, ILogger<ExceptionHandlerMiddleware> logger)
         {
             _next = next;
+            _logger = logger;
         }
 
         public async Task Invoke(HttpContext context)
@@ -21,6 +23,7 @@ namespace TaskManager.Api.Middlewares
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Unhandled exception occurred while processing request {Path}", context.Request.Path);
                 await ConvertException(context, ex);
             }
         }
@@ -28,9 +31,7 @@ namespace TaskManager.Api.Middlewares
         private Task ConvertException(HttpContext context, Exception exception)
         {
             HttpStatusCode httpStatusCode = HttpStatusCode.InternalServerError;
-
             context.Response.ContentType = "application/json";
-
             var result = string.Empty;
 
             switch (exception)
@@ -39,14 +40,14 @@ namespace TaskManager.Api.Middlewares
                     httpStatusCode = HttpStatusCode.BadRequest;
                     result = JsonSerializer.Serialize(validationException.ValidationErrors);
                     break;
-                case Exception:
+                default:
                     httpStatusCode = HttpStatusCode.BadRequest;
                     break;
             }
 
             context.Response.StatusCode = (int)httpStatusCode;
 
-            if (result == string.Empty)
+            if (string.IsNullOrEmpty(result))
             {
                 result = JsonSerializer.Serialize(new { error = exception.Message });
             }

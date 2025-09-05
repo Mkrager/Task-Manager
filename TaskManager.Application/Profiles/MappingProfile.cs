@@ -1,5 +1,4 @@
-﻿
-using AutoMapper;
+﻿using AutoMapper;
 using TaskManager.Application.DTOs;
 using TaskManager.Application.Features.Account.Commads.Registration;
 using TaskManager.Application.Features.Account.Queries.Authentication;
@@ -18,7 +17,8 @@ namespace TaskManager.Application.Profiles
             CreateMap<AuthenticationRequest, AuthenticationQuery>().ReverseMap();
             CreateMap<AuthenticationResponse, AuthenticationVm>();
 
-            CreateMap<Domain.Entities.Task, TaskListVm>().ReverseMap();
+            CreateMap<Domain.Entities.Task, TaskDto>().ReverseMap();
+            CreateMap<GetTasksByUserIdResponse, TaskListVm>().ReverseMap();
             CreateMap<Domain.Entities.Task, TaskDetailVm>().ReverseMap();
 
             CreateMap<Domain.Entities.Task, CreateTaskCommand>().ReverseMap();
